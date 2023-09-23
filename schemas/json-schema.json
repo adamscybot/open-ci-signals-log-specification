@@ -1,0 +1,194 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "type": "object",
+    "properties": {
+      "id": {
+        "type": "string"
+      },
+      "executionId": {
+        "type": "string",
+        "nullable": true,
+        "default": null
+      },
+      "version": {
+        "type": "string"
+      },
+      "type": {
+        "type": "string"
+      },
+      "payload": {
+        "type": "object"
+      },
+      "timestamp": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "extensions": {
+        "type": "object"
+      }
+    },
+    "required": ["id", "type", "payload"],
+    "oneOf": [
+      { "$ref": "#/definitions/messages/types/TestStarted" },
+      { "$ref": "#/definitions/messages/types/TestFinished" },
+      { "$ref": "#/definitions/messages/types/TestSuiteStarted" },
+      { "$ref": "#/definitions/messages/types/TestSuiteFinished" },
+      { "$ref": "#/definitions/messages/types/GenericType" }
+    ],
+    "definitions": {
+      "messages": {
+        "links": {
+          "type": "object",
+          "properties": {
+            "resolves": { "type": "string" },
+            "parent": { "type": "string" }
+          },
+          "additionalProperties": false
+        },
+        "enums": {
+          "testStarted": {
+            "enum": ["ocis:testStarted"]
+          },
+          "testFinished": {
+            "enum": ["ocis:testFinished"]
+          },
+          "testSuiteStarted": {
+            "enum": ["ocis:testSuiteStarted"]
+          },
+          "testSuiteFinished": {
+            "enum": ["ocis:testSuiteFinished"]
+          }
+        },
+        "types": {
+          "TestStarted": {
+            "allOf": [
+              {
+                "properties": {
+                  "type": { "$ref": "#/definitions/messages/enums/testStarted" }
+                }
+              },
+              {
+                "properties": {
+                  "payload": {
+                    "properties": {
+                      "name": { "type": "string" },
+                      "outputIsInlined": {
+                        "type": "boolean",
+                        "default": false
+                      }
+                    },
+                    "required": ["name"]
+                  },
+                  "links": {
+                    "allOf": [
+                      { "$ref": "#/definitions/messages/links" },
+                      {
+                        "properties": {
+                          "parent": {
+                            "description": "Unique identifier for the parent test, if this message is part of a larger test."
+                          }
+                        }
+                      }
+                    ]
+                  }
+                }
+              }
+            ]
+          },
+          "TestFinished": {
+            "allOf": [
+              {
+                "properties": {
+                  "type": { "$ref": "#/definitions/messages/enums/testFinished" },
+                  "payload": {
+                    "properties": {
+                      "duration": { "type": "number" }
+                    }
+                  },
+                  "links": { "$ref": "#/definitions/messages/links" }
+                },
+                "required": ["links"]
+              },
+              {
+                "properties": {
+                  "links": {
+                    "required": ["resolves"]
+                  }
+                }
+              }
+            ]
+          },
+          "TestSuiteStarted": {
+            "allOf": [
+              {
+                "properties": {
+                  "type": { "$ref": "#/definitions/messages/enums/testSuiteStarted" }
+                }
+              },
+              {
+                "properties": {
+                  "payload": {
+                    "properties": {
+                      "name": { "type": "string" }
+                    },
+                    "required": ["name"]
+                  }
+                }
+              }
+            ]
+          },
+          "TestSuiteFinished": {
+            "allOf": [
+              {
+                "properties": {
+                  "type": { "$ref": "#/definitions/messages/enums/testSuiteFinished" },
+                  "links": { "$ref": "#/definitions/messages/links" }
+                },
+                "required": ["links"]
+              },
+              {
+                "properties": {
+                  "links": {
+                    "required": ["resolves"]
+                  }
+                }
+              }
+            ]
+          },
+          "GenericType": {
+            "properties": {
+              "type": {
+                "pattern": "^(?!ocis:)[a-zA-Z]+:[a-zA-Z]+$"
+              },
+              "payload": {},
+              "links": { "$ref": "#/definitions/messages/links" }
+            },
+            "not": {
+              "anyOf": [
+                {
+                  "properties": {
+                    "type": { "$ref": "#/definitions/messages/enums/testStarted" }
+                  }
+                },
+                {
+                  "properties": {
+                    "type": { "$ref": "#/definitions/messages/enums/testFinished" }
+                  }
+                },
+                {
+                  "properties": {
+                    "type": { "$ref": "#/definitions/messages/enums/testSuiteStarted" }
+                  }
+                },
+                {
+                  "properties": {
+                    "type": { "$ref": "#/definitions/messages/enums/testSuiteFinished" }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      }
+    }
+  }
